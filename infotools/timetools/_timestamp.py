@@ -5,9 +5,11 @@
 	Ex. pandas.Timestamp is not compatible with pendulum.datetime.
 """
 
-import pendulum
-from typing import Any, Dict, Tuple, Union, Optional
 import re
+from typing import *
+from loguru import logger
+import pendulum
+
 STuple = Tuple[int, ...]
 TTuple = Tuple[int, int, int]
 
@@ -44,6 +46,7 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def parse(cls, value: Any) -> 'Timestamp':
+		logger.debug(f"parse({value})")
 		if isinstance(value, str):
 			result = cls.from_string(value)
 		elif isinstance(value, (list, tuple)):
@@ -65,6 +68,7 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def from_tuple(cls, value: Union[STuple, TTuple]) -> 'Timestamp':
+		logger.debug(f"from_tuple({value})")
 		if len(value) == 3:
 			year, month, day = value
 			hour, minute, second = 0, 0, 0
@@ -100,7 +104,7 @@ class Timestamp(pendulum.DateTime):
 		-------
 		Timestamp
 		"""
-
+		logger.debug(f"from_object({obj})")
 		year = obj.year
 		month = obj.month
 		day = obj.day
@@ -127,6 +131,7 @@ class Timestamp(pendulum.DateTime):
 		-------
 		pendulum.DateTime
 		"""
+		logger.debug(f"from_american_date({value})")
 		if ' ' in value:
 			dates, times = value.split(' ')
 		elif 'T' in value:
@@ -136,7 +141,12 @@ class Timestamp(pendulum.DateTime):
 			times = ""
 
 		month, day, year = list(map(int, dates.split('/')))
-
+		# Need to fix the year vlue if it's only twp digits
+		if year < 1900:
+			if year > 40: # "Close to the midpoint of the century."
+				year += 1900
+			else:
+				year += 2000
 		if times:
 			hour, minute, second, *_ = list(map(int, times.split(':')))
 		else:
@@ -154,14 +164,16 @@ class Timestamp(pendulum.DateTime):
 		return cls.from_dict(**keys)
 
 	@classmethod
-	def from_verbal_date(cls, value: str)->Optional["Timestamp"]:
+	def from_verbal_date(cls, value: str) -> Optional["Timestamp"]:
+		logger.debug(f"from_verbal_date({value})")
 		# 17 Dec 2012
 		verbal_regex_month_first = "(?P<month>[a-z]+)\s(?P<day>[\d]+)[\s,]+(?P<year>[\d]{4})"
 		verbal_regex_day_first = "(?P<day>[\d]+)[\s,]+(?P<month>[a-z]+)\s(?P<year>[\d]{4})"
 		value = value.lower()
 
 		short_months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-		long_months = ["january", "february", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+		long_months = ["january", "february", "april", "may", "june", "july", "august", "september", "october",
+			"november", "december"]
 
 		match = re.search(verbal_regex_month_first, value)
 		if not match:
@@ -185,17 +197,19 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def from_string(cls, value: str) -> 'Timestamp':
+		logger.debug(f"from_string({value})")
 		try:
 			obj = pendulum.parse(value)
-		except (ValueError):
+		except ValueError:
 			try:
 				obj = cls.from_american_date(value)
-			except:
+			except ValueError:
 				obj = cls.from_verbal_date(value)
 		return cls.from_object(obj)
 
 	@classmethod
-	def from_values(cls, year, month, day, hour = 0, minute = 0, second = 0, microsecond = 0, timezone = None) -> 'Timestamp':
+	def from_values(cls, year, month, day, hour = 0, minute = 0, second = 0, microsecond = 0,
+			timezone = None) -> 'Timestamp':
 		result = dict(
 			year = year,
 			month = month,

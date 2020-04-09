@@ -1,10 +1,36 @@
 import hashlib
-
-from pathlib import Path
+import mimetypes
 import os
+from pathlib import Path
+from typing import Tuple, Union
+
+mimetypes.add_type('audio/aac', '.aac')
+
+from loguru import logger
+
+Pathlike = Union[str, Path]
 
 
-def memoryUsage(show = True, units = 'MB'):
+def get_mimetype(filename: Pathlike) -> Tuple[str, str]:
+	""" Wrapper to get the mimetype of a given file. Returns `None` if the mimetype cannot be determined.
+		Returns
+		-------
+		mimetype, filetype
+	"""
+	# Cast to Path so that we can use Path methods
+	filename = Path(filename)
+	# TODO: Include `folder` as a valid mimetype/filetype?
+	mtype = mimetypes.guess_type(str(filename))
+	mtype, *_ = mtype
+	if mtype:
+		type_mime = tuple(mtype.split('/')) # Cast to tuple for consistency
+	else:
+		logger.warning(f"Could not determine the mimetype of {filename}: {mtype}")
+		type_mime = 'unknown', filename.suffix
+	return type_mime
+
+
+def memory_usage(show = True, units = 'MB'):
 	""" Gets the current memory usage
 		Returns
 		----------
@@ -25,7 +51,7 @@ def memoryUsage(show = True, units = 'MB'):
 		return usage
 
 
-def checkDir(path: Path):
+def checkdir(path: Pathlike) -> Path:
 	""" Creates a folder if it doesn't already exist.
 		Parameters
 		----------
@@ -33,15 +59,16 @@ def checkDir(path: Path):
 				Path to a folder.
 		Returns
 		-------
-			status: bool
-				Whether the folder was successfully created.
+		Path: The path that was checked.
 	"""
-	if path.is_dir() and not path.exists():
+	path = Path(path)
+	# if path.is_dir() and not path.exists():
+	if not path.exists():
 		path.mkdir()
-	return path.exists()
+	return path
 
 
-def generateFileMd5(filename: str, blocksize: int = 2 ** 20) -> str:
+def generate_md5(filename: Union[str, Path], blocksize: int = 2 ** 20) -> str:
 	""" Generates the md5sum of a file. Does
 		not require a lot of memory.
 		Parameters
@@ -57,7 +84,7 @@ def generateFileMd5(filename: str, blocksize: int = 2 ** 20) -> str:
 				The md5sum string.
 	"""
 	m = hashlib.md5()
-	with open(filename, "rb") as f:
+	with open(str(filename), "rb") as f:
 		while True:
 			buf = f.read(blocksize)
 			if not buf: break

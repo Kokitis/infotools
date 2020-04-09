@@ -5,10 +5,11 @@
 	Ex. pandas.Timestamp is not compatible with pendulum.datetime.
 """
 
-import pendulum
 import datetime
-from typing import Any, Tuple, Dict
 from dataclasses import dataclass
+from typing import Any, Dict, Tuple
+
+import pendulum
 
 
 @dataclass
@@ -33,6 +34,7 @@ class Duration(pendulum.Duration):
 		A drop-in replacement for datetime and Pendulum. Contains a number or
 		useful methods for time timedelta representations.
 	"""
+
 	def __new__(cls, value = None, **kwargs):
 		"""
 			Keyword Arguments
@@ -62,7 +64,7 @@ class Duration(pendulum.Duration):
 		return repr_string
 
 	@classmethod
-	def parse(cls, value: Any) -> TimedeltaInformation:
+	def parse(cls, value: Any) -> 'Duration':
 		"""
 			Attempts to parse/coerce any object into a timedelta.
 			The given element will be parsed by pendulum.parse, when possible.
@@ -282,8 +284,3 @@ class Duration(pendulum.Duration):
 	def to_yaml(self) -> str:
 		""" Returns a yaml representation of `self`"""
 		return self.to_json()
-
-
-if __name__ == "__main__":
-	D = Duration("P13DT5S")
-	print(repr(D))
