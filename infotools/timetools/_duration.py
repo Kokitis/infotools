@@ -7,7 +7,7 @@
 
 import datetime
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import *
 
 import pendulum
 
@@ -77,8 +77,9 @@ class Duration(pendulum.Duration):
 
 		"""
 		if isinstance(value, str):
-			result = pendulum.parse(value)
-			result = cls.from_object(result)
+			#result = pendulum.parse(value)
+			#result = cls.from_object(result)
+			result = cls.from_string(value)
 		elif isinstance(value, dict):
 			result = cls.from_keys(value)
 
@@ -221,13 +222,14 @@ class Duration(pendulum.Duration):
 		seconds = original['seconds']
 		longdict['hours'], seconds = divmod(seconds, 3600)
 		longdict['minutes'], longdict['seconds'] = divmod(seconds, 60)
-		longdict['seconds'] += original['microseconds'] / 1000000
+		# longdict['seconds'] += original['microseconds'] / 1000000
+		longdict['microseconds'] = original['microseconds']
 
 		# Since timedelta objects subtract positive numbers from the largest unit for negative timestamps, need to convert back,
 
 		return longdict
 
-	def to_iso(self, compact: bool = True) -> str:
+	def to_iso(self, compact: bool = False, include_microseconds: bool = False) -> str:
 		""" Converts the timedelta to an ISO Duration string. By default,
 			weeks are used instead of months, so the original duration string
 			used to create to Duration object may differ (but will be equivilant to)
@@ -235,30 +237,47 @@ class Duration(pendulum.Duration):
 			Parameters
 			----------
 				compact: bool; default False
-					Whether to omit emty fields.
+					Whether to omit empty fields.
 		"""
 		is_negative = self.total_seconds() < 0
 		values = self.tolongdict()
-		datetime_map = [
-			'P', ('years', 'Y'), ('months', 'M'), ('weeks', 'W'), ('days', 'D'),
-			'T', ('hours', 'H'), ('minutes', 'M'), ('seconds', 'S')]
-		datetime_values = list()
 
-		for key in datetime_map:
-			if isinstance(key, tuple):
-				element = (values.get(key[0], 0), key[1])
-				if compact and element[0] == 0: continue
-				datetime_values.append(element)
-			else:
-				datetime_values.append(("", key))
+		if not compact:
+			string = "P{years:>02}Y{weeks:>02}W{days:>02}DT{hours:>02}H{minutes:>02}M{seconds:>02}S"
+			result = string.format(**values)
+			if include_microseconds and values['microseconds'] > 0:
+				seconds = values['seconds'] + (values['microseconds'] / 1E6)
 
-		isostring = "".join("{}{}".format(i, j) for i, j in datetime_values)
+				second_string = str(seconds) + 'S'
+				if len(second_string.split('.')[0]) == 1:
+					second_string = '0' + second_string
+
+				result = result.split('M')[0] + 'M' + second_string
+
+			if self.total_seconds() < 86400:
+				result = 'PT' + result.split('T')[-1]
+			return result
+
+		suffix_map = [
+			('years', 'Y'), ('months', 'M'), ('weeks', 'W'), ('days', 'D'),
+			('hours', 'H'), ('minutes', 'M'), ('seconds', 'S')
+		]
+		suffix_map = dict(suffix_map)
+
+		large_keys = ['years', 'weeks', 'days']
+		small_keys = ['hours', 'minutes', 'seconds']
+		# Modify the "seconds" value so it has two digits before the decimal point.
+		if values["seconds"] <10:
+			values["seconds"] = "0"+str(values['seconds'])
+
+		large_values = "P" + "".join(["{0:>02}{1}".format(values[key], suffix_map[key]) for key in large_keys if values[key] != 0])
+		small_values = "T" + "".join(["{0:>02}{1}".format(values[key], suffix_map[key]) for key in small_keys if values[key] != 0])
+
+		isostring = large_values + small_values
 
 		if compact:
-			if isostring == 'PT' and not compact:  # Duration of 0 seconds
-				isostring = 'PT0S'
-		# isostring[0] == 'P' and isostring[1] == 'T': isostring = isostring[1:]
-		# elif isostring[-1] == 'T': isostring = isostring[:1]
+			if isostring == 'PT':  # Duration of 0 seconds
+				isostring = 'PT00S'
 
 		if is_negative:
 			isostring = '-' + isostring
@@ -267,6 +286,17 @@ class Duration(pendulum.Duration):
 	def to_timedelta(self) -> datetime.timedelta:
 		""" Returns a timedelta equivilant to `self`"""
 		return self.as_timedelta()
+
+	def to_standard(self)->str:
+		"""
+			Returns the duration formatted as HH:MM:SS.SS. Currently only designed for timedeltas less than a day.
+		"""
+		hours = self.hours
+		minutes = self.minutes
+		seconds = self.remaining_seconds + (self.microseconds / 1E6)
+
+		result = f"{hours:>02}:{minutes:>02}:{seconds:>05.2f}"
+		return result
 
 	def total_years(self) -> float:
 		"""
