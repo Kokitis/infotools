@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import pandas
 
@@ -30,7 +30,8 @@ def read_table(file_name: Union[str, Path], **kwargs):
 		raise NameError("{} does not have a valid extension!".format(file_name))
 	return df
 
-def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path) -> Path:
+
+def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, freeze_columns: List[str] = None) -> Path:
 	"""
 		Saves the table as an Excel spreadsheet, where multiple tables can be given..
 	Parameters
@@ -52,4 +53,7 @@ def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path) -> Path:
 		if df is None: continue
 		df.to_excel(writer, sheet_label, index = include_index)
 	writer.save()  # otherwise color_table_cells will not be able to load the file
+
+	# Need to use the xlsx library to change some features of the spreadsheet.
+
 	return filename

@@ -35,6 +35,12 @@ def test_parse_duration(data, duration):
 	result = Duration(data)
 	assert result == duration
 
+@pytest.mark.parametrize(
+	"string",
+	["P00Y00W01DT00H30M34S"]
+)
+def test_parse_string_duration(string):
+	result = Duration(string)
 
 @pytest.mark.parametrize(
 	"value, expected",
