@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 import pandas
 
@@ -31,7 +31,7 @@ def read_table(file_name: Union[str, Path], **kwargs):
 	return df
 
 
-def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, freeze_columns: List[str] = None) -> Path:
+def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, include_index: bool = True) -> Path:
 	"""
 		Saves the table as an Excel spreadsheet, where multiple tables can be given..
 	Parameters
@@ -47,7 +47,6 @@ def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, freeze_c
 	Path: The output filename
 	"""
 	writer = pandas.ExcelWriter(str(filename))
-	include_index = False
 	# python 3.5 or 3.6 made all dicts ordered by default, so the sheets will be ordered in the same order they were defined in `tables`
 	for sheet_label, df in tables.items():
 		if df is None: continue
