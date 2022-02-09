@@ -47,8 +47,7 @@ def memory_usage(show = True, units = 'MB'):
 		else:
 			value = usage
 		print("Current memory usage: {0:.2f}{1}".format(value, units), flush = True)
-	else:
-		return usage
+	return usage
 
 
 def checkdir(path: Pathlike) -> Path:

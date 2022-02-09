@@ -76,7 +76,6 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def from_tuple(cls, value: Union[STuple, TTuple]) -> 'Timestamp':
-		logger.debug(f"from_tuple({value})")
 		if len(value) == 3:
 			year, month, day = value
 			hour, minute, second = 0, 0, 0
@@ -138,7 +137,6 @@ class Timestamp(pendulum.DateTime):
 		-------
 		pendulum.DateTime
 		"""
-		logger.debug(f"from_american_date({value})")
 		if ' ' in value:
 			dates, times = value.split(' ')
 		elif 'T' in value:
@@ -172,7 +170,6 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def from_verbal_date(cls, value: str) -> Optional["Timestamp"]:
-		logger.debug(f"from_verbal_date({value})")
 		# 17 Dec 2012
 		verbal_regex_month_first = "(?P<month>[a-z]+)\s(?P<day>[\d]+)[\s,]+(?P<year>[\d]{4})"
 		verbal_regex_day_first = "(?P<day>[\d]+)[\s,]+(?P<month>[a-z]+)\s(?P<year>[\d]{4})"

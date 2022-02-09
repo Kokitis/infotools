@@ -6,6 +6,7 @@
 """
 
 import datetime
+import re
 from dataclasses import dataclass
 from typing import *
 
@@ -189,6 +190,28 @@ class Duration(pendulum.Duration):
 		keys = ['days', 'seconds', 'microseconds']
 		timedelta_keys = dict(zip(keys, value))
 		return cls.from_dict(**timedelta_keys)
+
+	@classmethod
+	def from_iso(cls, value: str) -> int:
+		""" Generates a Duration object from an iso-formatted string."""
+		pattern = "[\d]{2}[YWDHMS]"
+
+		multipliers = {
+			'Y': 365 * 24 * 3600,
+			'W': 7 * 24 * 3600,
+			'D': 24 * 3600,
+			'H': 3600,
+			'M': 60,
+			'S': 1
+		}
+
+		matches = re.findall(pattern, value)
+		total_seconds = 0
+		for match in matches:
+			multiplier = multipliers[match[-1]]
+			value = int(match[:2]) * multiplier
+			total_seconds += value
+		return cls(seconds = total_seconds)
 
 	def to_dict(self) -> Dict[str, int]:
 		""" Returns a dictionary that can be used to instantiate another timedelta or Duration object. """
