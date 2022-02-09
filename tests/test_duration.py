@@ -36,11 +36,12 @@ def test_parse_duration(data, duration):
 	assert result == duration
 
 @pytest.mark.parametrize(
-	"string",
-	["P00Y00W01DT00H30M34S"]
+	"string, expected",
+	[("P00Y00W01DT00H30M34S", datetime.timedelta(days = 1, hours = 0, minutes = 30, seconds = 34))]
 )
-def test_parse_string_duration(string):
-	result = Duration(string)
+def test_parse_string_duration(string, expected):
+	result = Duration.from_iso(string)
+	assert result == Duration.from_timedelta(expected)
 
 @pytest.mark.parametrize(
 	"value, expected",
