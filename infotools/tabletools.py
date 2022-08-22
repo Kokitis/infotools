@@ -56,3 +56,24 @@ def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, include_
 	# Need to use the xlsx library to change some features of the spreadsheet.
 
 	return filename
+
+def to_csv(table:pandas.DataFrame, filename:Path, precision:int = 2):
+	"""
+		A wrapper around csv/pandas that removes insignificant digits from the values in numerical columns.
+		Parameters
+		----------
+		filename:Path
+			Filename to the output table
+	"""
+
+	for column_label in table.columns:
+		column = table[column_label]
+		is_numeric = ""
+		is_float = ""
+
+		if is_numeric:
+			minimum_value = column.min()
+			maximum_value = column.max()
+
+			value = float(f"{value:.2f}")
+
