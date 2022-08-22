@@ -25,3 +25,6 @@ def test_checkdir(tmp_path):
 	logger.debug(f"{result == folder}")
 	assert result == folder
 	assert result.exists()
+
+def test_to_json():
+	pass

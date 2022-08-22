@@ -76,8 +76,10 @@ def test_misc(value, expected):
 @pytest.mark.parametrize(
 	"string, expected",
 	[
-		('2016-11-16 22:32:05', datetime.datetime(2016, 11, 16, 22, 32, 5)),
-		('2010-11-12', datetime.datetime(year = 2010, month = 11, day = 12))
+		('2016-11-16 22:32:05', datetime.datetime(2016, 11, 16, hour = 22, minute = 32, second = 5)),
+		('2010-11-12', datetime.datetime(year = 2010, month = 11, day = 12)),
+		('Thu, 31 Mar 2022 22:59:00 -0000', datetime.datetime(year = 2022, month = 3, day = 31)),
+		('Thu, 31 Mar 2022 22:59:00 -0000', datetime.datetime(year = 2022, month = 3, day = 31, hour = 23, minute = 59, second = 0))
 	]
 )
 def test_to_datetime(string, expected):
