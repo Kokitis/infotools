@@ -5,6 +5,13 @@ import matplotlib.pyplot as plt
 from infotools import numbertools
 
 
+def get_random_color(lower: int = 50, upper: int = 250) -> str:
+	red = random.randint(lower, upper)
+	green = random.randint(lower, upper)
+	blue = random.randint(lower, upper)
+	return f"#{red:>02X}{green:>02X}{blue:>02X}"
+
+
 def hr_labels(ax: plt.Axes, which: Literal['x', 'y', 'xy', 'both'] = 'y') -> plt.Axes:
 	""" Converts numerical values into a human-friendly format.
 		Parameters
