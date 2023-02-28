@@ -1,8 +1,18 @@
 from typing import *
 
 import matplotlib.pyplot as plt
-
+import matplotlib.patches as mpatches
 from infotools import numbertools
+import random
+
+def add_legend(ax: plt.Axes, colormap: Dict[str, str]) -> plt.Axes:
+	patches = list()
+	for label, color in sorted(colormap.items(), key = lambda s: (len(s[0].split('|')), s[0])):
+		patch = mpatches.Patch(color = color, label = label)
+		patches.append(patch)
+
+	ax.legend(handles = patches)
+	return ax
 
 
 def get_random_color(lower: int = 50, upper: int = 250) -> str:
