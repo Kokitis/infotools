@@ -5,14 +5,15 @@ twine upload -repository pypi dist/*
 """
 
 import infotools
+"""
 if infotools.DEBUG:
 	message = f"The module is still in debug mode!"
 	raise ValueError(message)
-
+"""
 setup(
 	name = 'infotools',
-	version = '0.7.1',
-	packages = ['infotools', 'infotools.timetools', 'infotools.numbertools', 'infotools'],
+	version = '0.9.1',
+	packages = ['infotools', 'infotools.timetools', 'infotools.numbertools'],
 	url = 'https://github.com/Kokitis/infotools',
 	license = 'MIT',
 	author = 'proginoskes',

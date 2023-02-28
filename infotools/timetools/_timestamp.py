@@ -36,7 +36,8 @@ class Timestamp(pendulum.DateTime):
 			return cls.parse(value)
 		result = super().__new__(cls, **kwargs)
 		return result
-	def __repr__(self)->str:
+
+	def __repr__(self) -> str:
 		""" This changes what repr() returns for Timestamp objects so they are shown with ISO timestamps.
 		ex. "Timestamp(2013, 10, 23, 0, 0, 0)" -> "Timestamp('2013-10-23T00:00:00')"
 		"""
@@ -148,7 +149,7 @@ class Timestamp(pendulum.DateTime):
 		month, day, year = list(map(int, dates.split('/')))
 		# Need to fix the year vlue if it's only twp digits
 		if year < 1900:
-			if year > 40: # "Close to the midpoint of the century."
+			if year > 40:  # "Close to the midpoint of the century."
 				year += 1900
 			else:
 				year += 2000
@@ -172,7 +173,7 @@ class Timestamp(pendulum.DateTime):
 	def from_verbal_date(cls, value: str) -> Optional["Timestamp"]:
 		# 17 Dec 2012
 		verbal_regex_month_first = "(?P<month>[a-z]+)\s(?P<day>[\d]+)[\s,]+(?P<year>[\d]{4})"
-		verbal_regex_day_first = "(?P<day>[\d]+)[\s,]+(?P<month>[a-z]+)\s(?P<year>[\d]{4})"
+		verbal_regex_day_first = "(?P<day>[\d]+)[\s,]+(?P<month>[a-z]+)[.]?\s(?P<year>[\d]{4})"
 		value = value.lower()
 
 		short_months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
@@ -201,18 +202,52 @@ class Timestamp(pendulum.DateTime):
 
 	@classmethod
 	def from_string(cls, value: str) -> 'Timestamp':
+
 		try:
+			logger.debug(f"parsing...")
 			obj = pendulum.parse(value)
+
 		except ValueError:
 			try:
+				logger.debug(f"From American Date")
 				obj = cls.from_american_date(value)
 			except ValueError:
 				obj = cls.from_verbal_date(value)
+
 		return cls.from_object(obj)
 
 	@classmethod
+	def from_regex(cls, value: str, regex: str = None):
+		""" Uses regular expressoin to parse the input timestamp.
+			Each regular expression should return a dictionary with the keys 'year', 'month', and 'day'
+		"""
+
+		regexes = [
+			# '13 Sep. 2005', '1 Dec. 2021', "20 Apr. 2022"
+			"(?P<day>[\d]{1,2})\s(?P<month>(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec))[.]?\s(?P<year>[\d]{4})"
+		]
+		# Ignore capitalization
+		value = value.lower()
+		for regex in regexes:
+			match = re.search(regex, value)
+			if match: break
+		else:
+			match = None
+
+		if match:
+			match = match.groupdict()
+			match['day'] = int(match['day'])
+			match['year'] = int(match['year'])
+			match['month'] = parse_month_string(match['month'])
+			obj = cls.from_dict(**match)
+		else:
+			logger.debug(f"Regex failed: {value=}\t{match=}")
+			obj = None
+		return obj
+
+	@classmethod
 	def from_values(cls, year, month, day, hour = 0, minute = 0, second = 0, microsecond = 0,
-			timezone = None) -> 'Timestamp':
+		timezone = None) -> 'Timestamp':
 		result = dict(
 			year = year,
 			month = month,
@@ -227,11 +262,26 @@ class Timestamp(pendulum.DateTime):
 	def to_iso(self) -> str:
 		return self.to_iso8601_string()
 
-	def to_datetime(self)->datetime.datetime:
+	def to_datetime(self) -> datetime.datetime:
 		return datetime.datetime(
 			year = self.year, month = self.month, day = self.day,
 			hour = self.hour, minute = self.minute, second = self.second, microsecond = self.microsecond
 		)
 
+
+def parse_month_string(string: str) -> int:
+	""" Attempts to convert the input string into an integer representing the month """
+	months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+	alias = {name: index for index, name in enumerate(months, start = 1)}
+
+	return alias.get(string.lower())
+
+
+def main():
+	value = '13 Sep. 2005'
+	ts = Timestamp.from_string(value)
+	print(ts)
+
+
 if __name__ == "__main__":
-	pass
+	main()

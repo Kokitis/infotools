@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import re
+from pprint import pprint
 
 plt.style.use('fivethirtyeight')
 
@@ -45,16 +47,7 @@ def get_data():
 
 
 def main():
-	data = get_data()
-	x, y = zip(*data)
-
-	fig, ax = plt.subplots(figsize = (8, 8))
-
-	ax.scatter(x, y)
-	ax = hr_labels(ax)
-
-	plt.tight_layout()
-	plt.show()
+	pass
 
 
 if __name__ == "__main__":

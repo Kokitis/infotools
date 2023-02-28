@@ -125,8 +125,10 @@ def test_duration_repr(duration):
 	td = datetime.timedelta(days = 12, seconds = 1245, microseconds = 123)
 	assert isinstance(td, datetime.timedelta)
 	assert duration.to_timedelta() == td
-
-	assert pytest.approx(duration.total_years(), (12 / 365))
+	# data = datetime.timedelta(days = 12, seconds = 1245, microseconds = 123)
+	total_days = 12 + (1245.123/86400)
+	total_years_expected = total_days / 365
+	assert duration.total_years() == pytest.approx(total_years_expected)
 
 @pytest.mark.parametrize(
 	"seconds, expected",

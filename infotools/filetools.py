@@ -3,19 +3,27 @@ import mimetypes
 import os
 from pathlib import Path
 from typing import Tuple, Union
-
+import datetime
+import re
 mimetypes.add_type('audio/aac', '.aac')
 
 from loguru import logger
 
 Pathlike = Union[str, Path]
-
+def get_type_name(t)->str:
+	pattern = "[\w]+[.][\w]+"
+	match = re.search(pattern, str(t))
+	if match:
+		match = match.group(0)
+	return match
 
 def get_mimetype(filename: Pathlike) -> Tuple[str, str]:
 	""" Wrapper to get the mimetype of a given file. Returns `None` if the mimetype cannot be determined.
 		Returns
 		-------
 		mimetype, filetype
+			Ex. ('text', 'plain'), ('video', 'mp4')
+
 	"""
 	# Cast to Path so that we can use Path methods
 	filename = Path(filename)
@@ -23,14 +31,14 @@ def get_mimetype(filename: Pathlike) -> Tuple[str, str]:
 	mtype = mimetypes.guess_type(str(filename))
 	mtype, *_ = mtype
 	if mtype:
-		type_mime = tuple(mtype.split('/')) # Cast to tuple for consistency
+		type_mime = tuple(mtype.split('/'))  # Cast to tuple for consistency
 	else:
 		logger.warning(f"Could not determine the mimetype of {filename}: {mtype}")
 		type_mime = 'unknown', filename.suffix
 	return type_mime
 
 
-def memory_usage(show = True, units = 'MB'):
+def memory_usage(show = True, units = 'MB', label: str = ""):
 	""" Gets the current memory usage
 		Returns
 		----------
@@ -46,7 +54,9 @@ def memory_usage(show = True, units = 'MB'):
 			value = usage / 1024 ** 2
 		else:
 			value = usage
-		print("Current memory usage: {0:.2f}{1}".format(value, units), flush = True)
+
+		# print("Current memory usage: {0:.2f}{1}".format(value, units), flush = True)
+		print(f"Current memory usage: {value:.2f}")
 	return usage
 
 
@@ -66,7 +76,8 @@ def checkdir(path: Pathlike) -> Path:
 		path.mkdir()
 	return path
 
-def copyfile(source:Path, target:Path)->Path:
+
+def copyfile(source: Path, target: Path) -> Path:
 	target.write_bytes(source.read_bytes())
 	return target
 
@@ -93,6 +104,76 @@ def generate_md5(filename: Union[str, Path], blocksize: int = 2 ** 20) -> str:
 			if not buf: break
 			m.update(buf)
 	return m.hexdigest()
+
+
+def sanitize_path(path: Path) -> Path:
+	""" Removes illegal characters from a path. """
+	pass
+
+
+def to_json(obj, filename: Path = None) -> str:
+	""" Tries to convert datatypes to json-usable versions. Ex numpy.ndarray -> list(). """
+	import json
+	import numpy
+	import datetime
+
+	# Here's a map of which python types need to be converted to json types.
+	type_map = {
+		int:   {numpy.integer},
+		float: {numpy.floating},
+		list:  {numpy.ndarray},
+		str:   {Path}
+	}
+
+	# Also implement a way of detecting whether `obj` has a method to convert it to json.
+	possible_methods = ['to_json', 'save_json', 'json', 'isoformat']
+
+	class NpEncoder(json.JSONEncoder):
+
+		def convert_numpy_object(self, obj):
+			""" Tries to convert an object from numpy into a compatible object. """
+			obj = self.convert_numpy_numeric(obj)
+			if isinstance(obj, numpy.ndarray):
+				return obj.tolist()
+			return obj
+
+		@staticmethod
+		def convert_numpy_numeric(obj):
+			object_type = type(obj)
+			for key_type, candidates in type_map.items():
+				if object_type in candidates:
+					return key_type(obj)
+			return obj
+
+		def call_conversion_method(self, obj):
+			for method in possible_methods:
+				if hasattr(obj, method):
+					attribute = getattr(obj, method)
+					return attribute()
+
+		def default(self, obj):
+			type_name = get_type_name(type(obj))
+			if type_name.startswith('numpy'):
+				return self.convert_numpy_object(obj)
+
+			if isinstance(obj, Path):
+				return str(obj)
+			if isinstance(obj, (datetime.datetime, datetime.date)):
+				return obj.isoformat()
+			if isinstance(obj, datetime.timedelta):
+				return str(obj)
+			# Now try to detect custom json implementations.
+			if hasattr(obj, 'to_json'):
+				return obj.to_json()
+			return super(NpEncoder, self).default(obj)
+
+	content = json.dumps(obj, cls = NpEncoder)
+	if filename:
+		filename.write_text(content)
+
+	content = json.loads(content)
+
+	return content
 
 
 if __name__ == "__main__":
