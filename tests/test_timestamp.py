@@ -61,17 +61,17 @@ def test_toiso(timestamp):
 
 	assert result == expected
 
+
 @pytest.mark.parametrize("value, expected",
 	[
 		("03/01/20", "2020-03-01")
 	]
 )
-
-
 def test_misc(value, expected):
 	result = timetools.Timestamp(value)
 
 	assert result.to_iso().split('T')[0] == expected
+
 
 @pytest.mark.parametrize(
 	"string, expected",
@@ -79,10 +79,28 @@ def test_misc(value, expected):
 		('2016-11-16 22:32:05', datetime.datetime(2016, 11, 16, hour = 22, minute = 32, second = 5)),
 		('2010-11-12', datetime.datetime(year = 2010, month = 11, day = 12)),
 		('Thu, 31 Mar 2022 22:59:00 -0000', datetime.datetime(year = 2022, month = 3, day = 31)),
-		('Thu, 31 Mar 2022 22:59:00 -0000', datetime.datetime(year = 2022, month = 3, day = 31, hour = 23, minute = 59, second = 0))
+		('Thu, 31 Mar 2022 22:59:00 -0000', datetime.datetime(year = 2022, month = 3, day = 31, hour = 0, minute =0, second = 0)),
+		("20 Apr. 2022", datetime.datetime(year = 2022, month = 4, day = 20)),
+		('13 Sep. 2005', datetime.datetime(year = 2005, month = 9, day = 13)),
+		('1 Dec. 2021', datetime.datetime(year = 2021, month = 12, day = 1)),
+		('22 Dec. 2019', datetime.datetime(year = 2019, month = 12, day = 22))
 	]
 )
 def test_to_datetime(string, expected):
 	# '2016-11-16 22:32:05'
 	result = timetools.Timestamp(string).to_datetime()
+	assert result == expected
+
+@pytest.mark.parametrize(
+	"string, expected",
+	[
+		("20 Apr. 2022", datetime.datetime(year = 2022, month = 4, day = 20)),
+		('13 Sep. 2005', datetime.datetime(year = 2005, month = 9, day = 13)),
+		('1 Dec. 2021', datetime.datetime(year = 2021, month = 12, day = 1)),
+		('22 Dec. 2019', datetime.datetime(year = 2019, month = 12, day = 22))
+	]
+)
+def test_from_verbal_date(string, expected):
+	result = timetools.Timestamp.from_verbal_date(string)
+
 	assert result == expected
