@@ -204,12 +204,10 @@ class Timestamp(pendulum.DateTime):
 	def from_string(cls, value: str) -> 'Timestamp':
 
 		try:
-			logger.debug(f"parsing...")
 			obj = pendulum.parse(value)
 
 		except ValueError:
 			try:
-				logger.debug(f"From American Date")
 				obj = cls.from_american_date(value)
 			except ValueError:
 				obj = cls.from_verbal_date(value)
