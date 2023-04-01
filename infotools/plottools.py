@@ -5,13 +5,13 @@ import matplotlib.patches as mpatches
 from infotools import numbertools
 import random
 
-def add_legend(ax: plt.Axes, colormap: Dict[str, str]) -> plt.Axes:
+def add_legend(ax: plt.Axes, colormap: Dict[str, str], **kwargs) -> plt.Axes:
 	patches = list()
 	for label, color in sorted(colormap.items(), key = lambda s: (len(s[0].split('|')), s[0])):
 		patch = mpatches.Patch(color = color, label = label)
 		patches.append(patch)
 
-	ax.legend(handles = patches)
+	ax.legend(handles = patches, **kwargs)
 	return ax
 
 
