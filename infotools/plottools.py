@@ -5,6 +5,29 @@ import matplotlib.patches as mpatches
 from infotools import numbertools
 import random
 
+class Palette:
+	def __init__(self, colormap: str = "Blues", step:int = 10):
+		self.breakpoints = [i * step for i in range(10)]
+		self.colors = seaborn.color_palette(colormap, len(self.breakpoints) + 1)
+
+		self.colormap_bins = {cutoff: color for cutoff, color in zip(self.breakpoints, self.colors)}
+
+	def get_color(self, value: float) -> str:
+		for cutoff, color in self.colormap_bins.items():
+			if value <= cutoff:
+				break
+		else:
+			color = '#FF0000'
+		return color
+
+	def add_legend(self, ax: plt.Axes, colormap: Dict[str, str] = None, **kwargs) -> plt.Axes:
+		if colormap is None:
+			colormap = self.colormap_bins
+		ax = add_legend(ax, colormap,**kwargs)
+		return ax
+
+
+
 def add_legend(ax: plt.Axes, colormap: Dict[str, str], **kwargs) -> plt.Axes:
 	patches = list()
 	for label, color in sorted(colormap.items(), key = lambda s: (len(s[0].split('|')), s[0])):
