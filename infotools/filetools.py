@@ -2,20 +2,24 @@ import hashlib
 import mimetypes
 import os
 from pathlib import Path
-from typing import Tuple, Union
-import datetime
+from typing import Tuple, Union, Set
+import string
 import re
+
 mimetypes.add_type('audio/aac', '.aac')
 
 from loguru import logger
 
 Pathlike = Union[str, Path]
-def get_type_name(t)->str:
+
+
+def get_type_name(t) -> str:
 	pattern = "[\w]+[.][\w]+"
 	match = re.search(pattern, str(t))
 	if match:
 		match = match.group(0)
 	return match
+
 
 def get_mimetype(filename: Pathlike) -> Tuple[str, str]:
 	""" Wrapper to get the mimetype of a given file. Returns `None` if the mimetype cannot be determined.
@@ -106,9 +110,31 @@ def generate_md5(filename: Union[str, Path], blocksize: int = 2 ** 20) -> str:
 	return m.hexdigest()
 
 
-def sanitize_path(path: Path) -> Path:
-	""" Removes illegal characters from a path. """
-	pass
+def get_allowed_characters() -> Set[str]:
+	allowed_characters = set(string.ascii_letters + string.digits)
+	allowed_characters = allowed_characters | {'.', ',', '&', '(', ')', '+', '-', '[', ']', '_'}
+	to_keep = {'Ñ', 'Ö', 'ß', 'á', 'ã', 'ä', 'ç', 'è', 'é', 'ê', 'ñ', 'ó', 'ö', 'ü', 'ę', 'Μ', 'Φ', 'К', 'М', 'Т', 'а', 'в', 'е', 'и', 'к', 'н', 'р',
+		'т', 'у', 'х', 'я', '/', ' '}
+	allowed_characters = allowed_characters | to_keep
+
+	return allowed_characters
+
+
+def sanitize_text(text: str, replacement: str = "") -> str:
+	allowed_characteres = get_allowed_characters()
+	characters = set(text)
+	characters_to_remove = characters - allowed_characteres
+	characters_to_replace = {' -': "", '/': "-", '&amp': "&"}
+	for char in characters_to_remove:
+		text = text.replace(char, replacement)
+
+	for character_to_replace, replacement in characters_to_replace.items():
+		text = text.replace(character_to_replace, replacement)
+
+	# Remove all extra whitespace
+	# pattern = "[\s]+"
+	# text = re.sub(pattern, " ", text)
+	return text
 
 
 def to_json(obj, filename: Path = None) -> str:
