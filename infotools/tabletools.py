@@ -46,12 +46,13 @@ def to_spreadsheet(tables: Dict[str, pandas.DataFrame], filename: Path, include_
 	-------
 	Path: The output filename
 	"""
-	writer = pandas.ExcelWriter(str(filename))
+	#writer = pandas.ExcelWriter(str(filename))
 	# python 3.5 or 3.6 made all dicts ordered by default, so the sheets will be ordered in the same order they were defined in `tables`
-	for sheet_label, df in tables.items():
-		if df is None: continue
-		df.to_excel(writer, sheet_label, index = include_index)
-	writer.save()  # otherwise color_table_cells will not be able to load the file
+	with pandas.ExcelWriter(str(filename)) as writer:
+		for sheet_label, table in tables.items():
+			if table is None:
+				continue
+			table.to_excel(writer, sheet_name = sheet_label, index = include_index)
 
 	# Need to use the xlsx library to change some features of the spreadsheet.
 
