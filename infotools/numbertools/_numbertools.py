@@ -5,10 +5,13 @@
 import math
 from numbers import Number
 from typing import Any, Iterable, List, Union
+import numpy
 
 # from ._scale import scale
-from . import _scale
-
+try:
+	from . import _scale
+except ImportError:
+	import _scale
 default_scale = _scale.DecimalScale()
 
 NumberType = Union[int, float]
@@ -112,3 +115,104 @@ def to_number(value: Union[Any, Iterable[Any]], default: Any = math.nan) -> Unio
 	return converted_number
 
 
+def convert_base(value: Union[int, str], before: int = 10, after: int = 10) -> Union[int, str]:
+	intermediate = int(value, before)
+	result = int(intermediate, after)
+	return result
+
+
+def to_decimal(value, base, lower = False, readable = False):
+	""" Converts any number to base 10
+		Parameters
+		----------
+			value: string
+				The number to convert
+			base: int
+				The current base of the number
+			readable: bool; default False
+				Whether to omit similar symbols. Currently defunct
+		Returns
+		----------
+			number: int
+	"""
+	Z = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	if lower:
+		Z = Z.lower()
+	if base < 37:
+		return int(value, base)
+	else:
+		Z = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	digits = value[::-1]
+	number = sum(Z.find(digit) * (base ** index) for index, digit in enumerate(digits))
+
+	return number
+
+
+def from_decimal(value, base, readable = False):
+	""" Converts a number in Base 10 to another Base
+		Parameters
+		----------
+			value: int
+				The number (in base 10) to convert
+			base: int
+				The base to convert the number to
+			readable: bool, default False
+				Omits similar symbols. Currently non-working
+		Returns
+		----------
+			number : string
+	"""
+	if base < 37:
+		Z = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	else:
+		Z = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	if base > len(Z):
+		print("to_base({0}, {1})".format(value, base))
+		raise ValueError("base must be >= 2 and <= {0}".format(len(Z)))
+	_pythonic_bases = {2, 8, 16}
+	if base in _pythonic_bases:
+		if base == 2:
+			number = '{0:b}'.format(value)
+		elif base == 8:
+			number = '{0:o}'.format(value)
+		elif base == 16:
+			number = '{0:X}'.format(value)
+		return number
+
+	bases = list()
+	index = 0
+	maximum = 1
+	while maximum <= value:
+		index += 1
+		bases.append(maximum)
+		maximum = pow(base, index)
+	bases = bases[::-1]
+
+	number = str()
+	for ibase in bases:
+		mod, value = divmod(value, ibase)
+		number += Z[mod]
+	return number
+
+
+def convert_base(value, from_base, to_base):
+	return from_decimal(to_decimal(value, from_base), to_base)
+
+
+def normalize_values(values: numpy.ndarray) -> numpy.ndarray:
+	"""
+		Maps the values form the input into the domain [0,1]
+	"""
+	return (values - numpy.min(values)) / (numpy.max(values) - numpy.min(values))
+
+
+def main():
+	for i in range(100):
+		result = from_decimal(i, 2)
+		print(f"{i} - {result:>04}")
+		if len(result) > 4:
+			break
+
+
+if __name__ == "__main__":
+	main()
