@@ -55,7 +55,7 @@ def test_to_float():
 	assert float(ts) == expected
 
 
-def test_toiso(timestamp):
+def test_to_iso(timestamp):
 	expected = timestamp.to_iso8601_string().split('+')[0][:-1]  # Remove the timezone
 	result = timetools.Timestamp(timestamp.to_iso8601_string()).to_iso()
 
@@ -101,6 +101,23 @@ def test_to_datetime(string, expected):
 	]
 )
 def test_from_verbal_date(string, expected):
+
 	result = timetools.Timestamp.from_verbal_date(string)
 
 	assert result == expected
+
+@pytest.mark.parametrize(
+	"start, stop, expected",
+	[
+
+	]
+)
+def test_timestamp_subtraction(start:str, stop:str, expected: str):
+	timestamp_start = timetools.Timestamp(start)
+	timestamp_stop = timetools.Timestamp(stop)
+
+	expected_duration = timetools.Duration(expected)
+
+	result = timestamp_stop - timestamp_start
+
+	assert isinstance(result, timetools.Duration)
