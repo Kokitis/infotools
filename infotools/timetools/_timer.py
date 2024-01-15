@@ -3,7 +3,7 @@
 """
 import statistics
 import time
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, Tuple, Union, Optional
 
 try:
 	from infotools.timetools import Duration
@@ -21,15 +21,32 @@ class Timer:
 		.timeFunction -> benchmarks a function
 		.benchmark -> benchmarks an external process and returns
 			both the average execution time and standard deviation.
+
+		Example
+		-------
+		```
+		with Timer():
+			result = method_to_time(*args)
+
+
+		```
 	
 	"""
 
-	def __init__(self):
+	def __init__(self, label: Optional[str] = None):
 		self.start_time = time.clock()
 		self.end_time = 0.0
+		self.label = label
 
 	def __str__(self):
 		return self.duration.to_iso()
+
+	def __enter__(self):
+		self.start = time.time()
+
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		duration = time.time() - self.start
+		print(f"Finished {self.label} in {duration:.2f} seconds.", flush = True)
 
 	@property
 	def duration(self) -> Duration:
