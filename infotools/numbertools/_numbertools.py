@@ -4,8 +4,9 @@
 
 import math
 from numbers import Number
-from typing import Any, Iterable, List, Union
+from typing import Any, Iterable, List, Union, Optional
 import numpy
+from loguru import logger
 
 # from ._scale import scale
 try:
@@ -23,27 +24,38 @@ def _is_null(value) -> bool:
 	return False
 
 
-def human_readable(value: NumberType, precision: int = 2) -> str:
+def human_readable(value: NumberType, precision: int = 2, base: Optional[str] = None) -> str:
 	""" Converts a number into a more easily-read string.
-		Ex. 101000 -> '101T' or (101, 'T')
+		Ex. 101,000,000,000,000 -> '101T'
 
 		Parameters
 		----------
-		value: number, list<number>
+		value: NumberType
 			Any number or list of numbers. If a list is given, all numbers
 			will be asigned the same suffix as the lowest number.
 		precision: int; default 2
 			The number of decimal places to show.
-
+		base: Optional[str]
+			Converts `value` to the given base. `None` skips conversion. Assumes the values are from metric units.
 		Returns
 		-------
 		str, list<str>
 			The reformatted number.
 	"""
+
 	template = '{0:.' + str(int(precision)) + 'f}{1}'
-	magnitude = default_scale.get_magnitude_from_value(value)
-	human_readable_number = value / magnitude.multiplier
-	string = template.format(human_readable_number, magnitude.suffix)
+	# if base is not None and False:
+	#	value = default_scale.convert(value, base)
+	#	logger.debug(f"{value=}")
+	if base is None:
+		magnitude = default_scale.get_magnitude_from_value(value)
+		human_readable_number = value / magnitude.multiplier
+		string = template.format(human_readable_number, magnitude.suffix)
+	else:
+		logger.debug(f"{value=}")
+		human_readable_number = default_scale.convert(value, base)
+		logger.debug(f"{human_readable_number=}")
+		string = template.format(human_readable_number, base if base not in {'', 'unit'} else "")
 
 	return string
 
@@ -113,12 +125,6 @@ def to_number(value: Union[Any, Iterable[Any]], default: Any = math.nan) -> Unio
 		converted_number = int(converted_number)
 
 	return converted_number
-
-
-def convert_base(value: Union[int, str], before: int = 10, after: int = 10) -> Union[int, str]:
-	intermediate = int(value, before)
-	result = int(intermediate, after)
-	return result
 
 
 def to_decimal(value, base, lower = False, readable = False):
@@ -207,11 +213,16 @@ def normalize_values(values: numpy.ndarray) -> numpy.ndarray:
 
 
 def main():
-	for i in range(100):
-		result = from_decimal(i, 2)
-		print(f"{i} - {result:>04}")
-		if len(result) > 4:
-			break
+	parameters = [
+		(111_222_333_444_555, 6, 'B', '111222.33B'),
+		(-500_000_000_000.0, 6, 'T', '-0.500T'),
+		(1234.123, 6, "unit", '1234.123')
+	]
+	precision = 6
+
+	for value, precision, base, expected in parameters:
+		result = human_readable(value, precision, base)
+		print(result)
 
 
 if __name__ == "__main__":
