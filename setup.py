@@ -1,7 +1,7 @@
 from setuptools import setup
 """
 python setup.py sdist bdist_wheel
-twine upload -repository pypi dist/*
+twine upload --repository pypi dist/*
 """
 
 import infotools
@@ -12,7 +12,7 @@ if infotools.DEBUG:
 """
 setup(
 	name = 'infotools',
-	version = '0.9.2',
+	version = '2025.05.06',
 	packages = ['infotools', 'infotools.timetools', 'infotools.numbertools'],
 	url = 'https://github.com/Kokitis/infotools',
 	license = 'MIT',
