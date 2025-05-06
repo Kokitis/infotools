@@ -224,6 +224,8 @@ class Timestamp(pendulum.DateTime):
 			# '13 Sep. 2005', '1 Dec. 2021', "20 Apr. 2022"
 			"(?P<day>[\d]{1,2})\s(?P<month>(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec))[.]?\s(?P<year>[\d]{4})"
 		]
+		if regex is not None:
+			regexes.append(regex)
 		# Ignore capitalization
 		value = value.lower()
 		for regex in regexes:

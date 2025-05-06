@@ -30,7 +30,6 @@ class TimedeltaInformation:
 		return data
 
 
-
 class Duration(pendulum.Duration):
 	"""
 		A drop-in replacement for datetime and Pendulum. Contains a number or
@@ -96,6 +95,10 @@ class Duration(pendulum.Duration):
 	def from_dict(cls, **keys) -> 'Duration':
 		""" initializes a `Duration` object from a dictionary using `**` notation."""
 		return cls(**keys)
+
+	@classmethod
+	def from_interval(cls, interval: pendulum.Interval) -> 'Duration':
+		return cls(seconds = interval.total_seconds())
 
 	@classmethod
 	def from_keys(cls, keys: Dict[str, int]) -> 'Duration':
@@ -343,3 +346,20 @@ class Duration(pendulum.Duration):
 	def to_yaml(self) -> str:
 		""" Returns a yaml representation of `self`"""
 		return self.to_json()
+
+
+def main():
+	import pendulum
+
+	dt1 = pendulum.datetime(2000, 1, 1, 13, 30, 13)
+	dt2 = pendulum.datetime(2000, 1, 2, 9, 13, 13)
+
+	interval = dt2 - dt1
+	print(interval)
+	print(interval.total_seconds())
+	print(Duration.from_interval(interval))
+	print(Duration(interval))
+
+
+if __name__ == "__main__":
+	main()

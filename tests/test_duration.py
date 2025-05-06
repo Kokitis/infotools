@@ -188,9 +188,25 @@ def test_to_iso_medium(seconds, expected):
 		("23:17", 1397),
 		("19", 19),
 		("19.1", 19.1)
-
 	]
 )
 def test_from_standard(value, expected):
 	result = Duration.from_string(value)
 	assert result.total_seconds() == expected
+
+
+@pytest.mark.parametrize(
+	"value1, value2, expected",
+	[
+		((2000, 1, 1), (2000, 1, 2), 24 * 3600),
+		((2000, 1, 1, 13, 30, 0), (2000, 1, 1, 14, 0, 0), 30 * 60),
+		((2000, 1, 1, 13, 30, 13), (2000, 1, 2, 9, 13, 13), 70980)
+	]
+)
+def test_from_interval(value1, value2, expected):
+	value1 = pendulum.datetime(*value1)
+	value2 = pendulum.datetime(*value2)
+	interval = value2 - value1
+
+	duration = Duration.from_interval(interval)
+	assert duration.total_seconds() == expected
