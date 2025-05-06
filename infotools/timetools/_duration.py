@@ -78,8 +78,8 @@ class Duration(pendulum.Duration):
 
 		"""
 		if isinstance(value, str):
-			#result = pendulum.parse(value)
-			#result = cls.from_object(result)
+			# result = pendulum.parse(value)
+			# result = cls.from_object(result)
 			result = cls.from_string(value)
 		elif isinstance(value, dict):
 			result = cls.from_keys(value)
@@ -102,6 +102,20 @@ class Duration(pendulum.Duration):
 		return cls(**keys)
 
 	@classmethod
+	def from_standard(cls, value: str) -> 'Duration':
+		""" Initializes a `Duration` object from a string formatted as 'HH:MM:SS.SS'"""
+		times = value.split(':')
+		if len(times) == 1:
+			hour = minute = 0
+			second = float(times[0])
+		elif len(times) == 2:
+			hour = 0
+			minute, second = map(float, times)  # use float to preserve milliseconds
+		else:
+			hour, minute, second = map(float, times)
+		return cls(hours = hour, minutes = minute, seconds = second)
+
+	@classmethod
 	def from_string(cls, string: str) -> 'Duration':
 		"""
 			Parses a string. Defaults to pendulum.parse
@@ -114,16 +128,7 @@ class Duration(pendulum.Duration):
 		Duration
 		"""
 		if ':' in string:
-			times = string.split(':')
-			if len(times) == 1:
-				hour = minute = 0
-				second = float(times[0])
-			elif len(times) == 2:
-				hour = 0
-				minute, second = map(float, times)  # use float to preserve milliseconds
-			else:
-				hour, minute, second = map(float, times)
-			return cls(hours = hour, minutes = minute, seconds = second)
+			return cls.from_standard(string)
 		else:
 			result = pendulum.parse(string)
 			return cls.from_object(result)
@@ -290,8 +295,8 @@ class Duration(pendulum.Duration):
 		large_keys = ['years', 'weeks', 'days']
 		small_keys = ['hours', 'minutes', 'seconds']
 		# Modify the "seconds" value so it has two digits before the decimal point.
-		if values["seconds"] <10:
-			values["seconds"] = "0"+str(values['seconds'])
+		if values["seconds"] < 10:
+			values["seconds"] = "0" + str(values['seconds'])
 
 		large_values = "P" + "".join(["{0:>02}{1}".format(values[key], suffix_map[key]) for key in large_keys if values[key] != 0])
 		small_values = "T" + "".join(["{0:>02}{1}".format(values[key], suffix_map[key]) for key in small_keys if values[key] != 0])
@@ -310,7 +315,7 @@ class Duration(pendulum.Duration):
 		""" Returns a timedelta equivilant to `self`"""
 		return self.as_timedelta()
 
-	def to_standard(self)->str:
+	def to_standard(self) -> str:
 		"""
 			Returns the duration formatted as HH:MM:SS.SS. Currently only designed for timedeltas less than a day.
 		"""

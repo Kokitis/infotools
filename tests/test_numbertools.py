@@ -166,10 +166,20 @@ def test_is_number(value, expected):
 		(-500_000_000_000.0, 2, 'T', "-0.50T")
 	]
 )
-def test_human_readable(number, precision, base, expected):
+def test_human_readable_1(number, precision, base, expected):
 	assert numbertools.human_readable(number, precision = precision, base = base) == expected
 
-
+@pytest.mark.parametrize(
+	"number, precision, base, system, expected",
+	[
+		(1_000_000, 2, None, 'decimal', '1.00M'),
+		(1_000_000, 2, None, 'binary', '976.56KiB'),
+		(1_000_000_000, 1, None, 'decimal', '1.0B'),
+		(1_000_000_000, 1, None, 'binary', '953.7MiB')
+	]
+)
+def test_human_readable_2(number, precision, base, system, expected):
+	assert numbertools.human_readable(number, precision = precision, base = base, system = system) == expected
 @pytest.mark.parametrize(
 	"value,expected",
 	[

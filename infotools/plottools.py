@@ -28,9 +28,12 @@ class Palette:
 
 
 
-def add_legend(ax: plt.Axes, colormap: Dict[str, str], **kwargs) -> plt.Axes:
+def add_legend(ax: plt.Axes, colormap: Dict[str, str], keep_order:bool = False,  **kwargs) -> plt.Axes:
+
+	items = colormap.items() if keep_order else sorted(colormap.items())
+
 	patches = list()
-	for label, color in sorted(colormap.items(), key = lambda s: (len(s[0].split('|')), s[0])):
+	for label, color in items:
 		patch = mpatches.Patch(color = color, label = label)
 		patches.append(patch)
 

@@ -35,6 +35,7 @@ def test_parse_duration(data, duration):
 	result = Duration(data)
 	assert result == duration
 
+
 @pytest.mark.parametrize(
 	"string, expected",
 	[("P00Y00W01DT00H30M34S", datetime.timedelta(days = 1, hours = 0, minutes = 30, seconds = 34))]
@@ -42,6 +43,7 @@ def test_parse_duration(data, duration):
 def test_parse_string_duration(string, expected):
 	result = Duration.from_iso(string)
 	assert result == Duration.from_timedelta(expected)
+
 
 @pytest.mark.parametrize(
 	"value, expected",
@@ -126,9 +128,10 @@ def test_duration_repr(duration):
 	assert isinstance(td, datetime.timedelta)
 	assert duration.to_timedelta() == td
 	# data = datetime.timedelta(days = 12, seconds = 1245, microseconds = 123)
-	total_days = 12 + (1245.123/86400)
+	total_days = 12 + (1245.123 / 86400)
 	total_years_expected = total_days / 365
 	assert duration.total_years() == pytest.approx(total_years_expected)
+
 
 @pytest.mark.parametrize(
 	"seconds, expected",
@@ -182,3 +185,20 @@ def test_to_iso_full(seconds, expected):
 def test_to_iso_medium(seconds, expected):
 	result = Duration(seconds = seconds).to_iso(compact = False, include_microseconds = True)
 	assert result == expected
+
+
+@pytest.mark.parametrize(
+	"value, expected",
+	[
+		("00:00:10.00", 10),
+		("00:00:11", 11),
+		("00:12", 12),
+		("55:13", 3313),
+		("4:55:14", 17714),
+		("4:55:14.5", 17714.5),
+
+	]
+)
+def test_from_standard(value, expected):
+	result = Duration.from_string(value)
+	assert result.total_seconds() == expected

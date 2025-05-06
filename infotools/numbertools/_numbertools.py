@@ -4,7 +4,7 @@
 
 import math
 from numbers import Number
-from typing import Any, Iterable, List, Union, Optional
+from typing import Any, Iterable, List, Union, Optional, Literal
 import numpy
 from loguru import logger
 
@@ -15,6 +15,11 @@ except ImportError:
 	import _scale
 default_scale = _scale.DecimalScale()
 
+available_systems = {
+	'decimal': _scale.DecimalScale(),
+	'binary': _scale.BinaryScale()
+}
+
 NumberType = Union[int, float]
 
 
@@ -24,7 +29,7 @@ def _is_null(value) -> bool:
 	return False
 
 
-def human_readable(value: NumberType, precision: int = 2, base: Optional[str] = None) -> str:
+def human_readable(value: NumberType, precision: int = 2, base: Optional[str] = None, system:Literal['decimal', 'binary'] = 'decimal') -> str:
 	""" Converts a number into a more easily-read string.
 		Ex. 101,000,000,000,000 -> '101T'
 
@@ -37,23 +42,28 @@ def human_readable(value: NumberType, precision: int = 2, base: Optional[str] = 
 			The number of decimal places to show.
 		base: Optional[str]
 			Converts `value` to the given base. `None` skips conversion. Assumes the values are from metric units.
+		system: Literal['decimal', 'binary']; default 'decimal'
+			The scale with which to choose the number prefix/suffix from.
 		Returns
 		-------
 		str, list<str>
 			The reformatted number.
 	"""
-
+	if system is None:
+		system = 'decimal'
+	if system not in available_systems:
+		message = f"'{system}' is not an available scalling system. Choose from one of {list(available_systems.keys())}"
+		raise ValueError(message)
+	else:
+		current_scale = available_systems[system]
 	template = '{0:.' + str(int(precision)) + 'f}{1}'
-	# if base is not None and False:
-	#	value = default_scale.convert(value, base)
-	#	logger.debug(f"{value=}")
 	if base is None:
-		magnitude = default_scale.get_magnitude_from_value(value)
+		magnitude = current_scale.get_magnitude_from_value(value)
 		human_readable_number = value / magnitude.multiplier
 		string = template.format(human_readable_number, magnitude.suffix)
 	else:
 		logger.debug(f"{value=}")
-		human_readable_number = default_scale.convert(value, base)
+		human_readable_number = current_scale.convert(value, base)
 		logger.debug(f"{human_readable_number=}")
 		string = template.format(human_readable_number, base if base not in {'', 'unit'} else "")
 

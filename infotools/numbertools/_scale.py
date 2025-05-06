@@ -220,14 +220,14 @@ class BinaryScale(AbstractScale):
 		self.base = 1024
 		self.system = [
 			Magnitude('', '', self.base ** 0, ['unit', '']),
-			Magnitude('kibi', 'K', self.base ** 1, ['thousand']),
-			Magnitude('mebi', 'M', self.base ** 2, ['million']),
-			Magnitude('gibi', 'B', self.base ** 2, ['billion']),
-			Magnitude('tebi', 'T', self.base ** 4, ['trillion']),
-			Magnitude('pebi', 'P', self.base ** 5, ['quadrillion']),
-			Magnitude('exbi', 'E', self.base ** 6, ['quintillion']),
-			Magnitude('zebi', 'Z', self.base ** 7, []),
-			Magnitude('yobi', 'Y', self.base ** 8, [])
+			Magnitude('kibi', 'KiB', self.base ** 1, ['thousand']),
+			Magnitude('mebi', 'MiB', self.base ** 2, ['million']),
+			Magnitude('gibi', 'GiB', self.base ** 3, ['billion']),
+			Magnitude('tebi', 'TiB', self.base ** 4, ['trillion']),
+			Magnitude('pebi', 'PiB', self.base ** 5, ['quadrillion']),
+			Magnitude('exbi', 'EiB', self.base ** 6, ['quintillion']),
+			Magnitude('zebi', 'ZiB', self.base ** 7, []),
+			Magnitude('yobi', 'YiB', self.base ** 8, [])
 		]
 
 	def get_unit_magnitude(self):
@@ -235,4 +235,6 @@ class BinaryScale(AbstractScale):
 
 
 if __name__ == "__main__":
-	pass
+	scale = BinaryScale()
+	value = 1_000_000_000
+	print(scale.get_magnitude_from_value(value))
