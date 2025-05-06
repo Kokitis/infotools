@@ -30,6 +30,7 @@ class TimedeltaInformation:
 		return data
 
 
+
 class Duration(pendulum.Duration):
 	"""
 		A drop-in replacement for datetime and Pendulum. Contains a number or
@@ -127,7 +128,7 @@ class Duration(pendulum.Duration):
 		-------
 		Duration
 		"""
-		if ':' in string:
+		if ':' in string or string.replace('.', '').isdigit():
 			return cls.from_standard(string)
 		else:
 			result = pendulum.parse(string)

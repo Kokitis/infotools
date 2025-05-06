@@ -58,18 +58,6 @@ def test_parse_duration_variable(value, expected: int):
 	assert result.total_seconds() == expected
 
 
-@pytest.mark.parametrize(
-	"value, expected",
-	[
-		("00:23:17", 1397),
-		("23:17", 1397)
-	]
-)
-def test_parse_duration_from_string(value, expected):
-	result = Duration.from_string(value)
-	assert result.total_seconds() == expected
-
-
 def test_duration_attributes():
 	# PT8H37M8.070428S 31028.070428 31028
 	total_seconds = 31029.070428
@@ -196,6 +184,10 @@ def test_to_iso_medium(seconds, expected):
 		("55:13", 3313),
 		("4:55:14", 17714),
 		("4:55:14.5", 17714.5),
+		("00:23:17", 1397),
+		("23:17", 1397),
+		("19", 19),
+		("19.1", 19.1)
 
 	]
 )
